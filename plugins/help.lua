@@ -163,6 +163,7 @@ return {
     "!help all: Show all commands for every plugin.",
     "!help [plugin name]: Commands for that plugin.",
     "!help [number]: Commands for that plugin. Type !help to get the plugin number."
+    "جهت ساختن گروه ضد اسپم به ایدی @Bad_bo0y مراجعه کنید"
   },
   patterns = {
     "^!help$",
