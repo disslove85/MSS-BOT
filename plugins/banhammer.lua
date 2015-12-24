@@ -36,16 +36,16 @@ local function ban_user(user_id, chat_id)
   kick_user(user_id, chat_id)
 end
 
-local function superban_user(user_id, chat_id)
+local function suban_user(user_id, chat_id)
   -- Save to redis
-  local hash =  'superbanned:'..user_id
+  local hash =  'subanned:'..user_id
   redis:set(hash, true)
   -- Kick from chat
   kick_user(user_id, chat_id)
 end
 
-local function is_super_banned(user_id)
-    local hash = 'superbanned:'..user_id
+local function is_su_banned(user_id)
+    local hash = 'subanned:'..user_id
     local superbanned = redis:get(hash)
     return superbanned or false
 end
@@ -55,8 +55,8 @@ local function unban_user(user_id, chat_id)
   redis:del(hash)
 end
 
-local function superunban_user(user_id, chat_id)
-  local hash =  'superbanned:'..user_id
+local function suunban_user(user_id, chat_id)
+  local hash =  'subanned:'..user_id
   redis:del(hash)
   return 'User '..user_id..' unbanned'
 end
@@ -100,8 +100,8 @@ local function action_by_id(extra, success, result)
       end
     elseif matches[1] == 'superunban' then
       lift_ban = true
-      if is_super_banned(member) then
-        superunban_user(member, chat_id)
+      if is_su_banned(member) then
+        suunban_user(member, chat_id)
         send_large_msg(chat, 'User with ID ['..member..'] is globally unbanned.')
       else
         send_large_msg(chat, 'No user with ID '..member..' in (super)ban list.')
@@ -128,13 +128,13 @@ local function action_by_reply(extra, success, result)
       ban_user(user_id, chat_id)
       send_msg(chat, 'User '..user_id..' banned', ok_cb,  true)
     elseif extra.match == 'superban' then
-      superban_user(user_id, chat_id)
+      suban_user(user_id, chat_id)
       send_large_msg(receiver, full_name..' ['..user_id..'] globally banned!')
     elseif extra.match == 'unban' then
       unban_user(user_id, chat_id)
       send_msg(chat, 'User '..user_id..' unbanned', ok_cb,  true)
     elseif extra.match == 'superunban' then
-      superunban_user(user_id, chat_id)
+      suunban_user(user_id, chat_id)
       send_large_msg(receiver, full_name..' ['..user_id..'] globally unbanned!')
     end
   else
@@ -165,13 +165,13 @@ local function resolve_username(extra, success, result)
           ban_user(user_id, chat_id)
           send_msg(chat, 'User @'..username..' banned', ok_cb,  true)
         elseif extra.match == 'superban' then
-          superban_user(user_id, chat_id)
+          suban_user(user_id, chat_id)
           send_msg(chat, 'User @'..username..' ['..user_id..'] globally banned!', ok_cb,  true)
         elseif extra.match == 'unban' then
           unban_user(user_id, chat_id)
           send_msg(chat, 'User @'..username..' unbanned', ok_cb,  true)
         elseif extra.match == 'superunban' then
-          superunban_user(user_id, chat_id)
+          suunban_user(user_id, chat_id)
           send_msg(chat, 'User @'..username..' ['..user_id..'] globally unbanned!', ok_cb,  true)
         end
       end
@@ -243,7 +243,7 @@ local function pre_process(msg)
     local banned = is_banned(user_id, chat_id)
     if superbanned then
       print('SuperBanned user talking!')
-      superban_user(user_id, chat_id)
+      suban_user(user_id, chat_id)
       msg.text = ''
     end
     if banned then
@@ -321,7 +321,7 @@ local function run(msg, matches)
         local user = string.gsub(user_id, '@', '')
         msgr = res_user(user, resolve_username, {msg=msg, match=matches[1]})
       end
-    elseif matches[1] == 'superban' and is_admin(msg) then
+    elseif matches[1] == 'suban' and is_admin(msg) then
       if msg.reply_id then
         msgr = get_message(msg.reply_id, action_by_reply, {msg=msg, match=matches[1]})
       elseif string.match(user_id, '^%d+$') then
@@ -339,7 +339,7 @@ local function run(msg, matches)
         local user = string.gsub(user_id, '@', '')
         msgr = res_user(user, resolve_username, {msg=msg, match=matches[1]})
       end
-    elseif matches[1] == 'superunban' and is_admin(msg) then
+    elseif matches[1] == 'suunban' and is_admin(msg) then
       if msg.reply_id then
         msgr = get_message(msg.reply_id, action_by_reply, {msg=msg, match=matches[1]})
       elseif string.match(user_id, '^%d+$') then
@@ -443,10 +443,10 @@ return {
       "!kickme : Kick yourself out of this group."
     },
     admin = {
-      "!superban : If type in reply, will ban user globally.",
-      "!superban <user_id>/@<username> : Kick user_id/username from all chat and kicks it if joins again",
-      "!superunban : If type in reply, will unban user globally.",
-      "!superunban <user_id>/@<username> : Unban user_id/username globally."
+      "!suban : If type in reply, will ban user globally.",
+      "!suban <user_id>/@<username> : Kick user_id/username from all chat and kicks it if joins again",
+      "!suunban : If type in reply, will unban user globally.",
+      "!suunban <user_id>/@<username> : Unban user_id/username globally."
     },
     moderator = {
       "!antiflood kick : Enable flood protection. Flooder will be kicked.",
@@ -481,10 +481,10 @@ return {
     "^!(whitelist) (disable)$",
     "^!(whitelist) (enable)$",
     "^!(whitelist) (user) (%d+)$",
-    "^!(superban)$",
-    "^!(superban) (.*)$",
-    "^!(superunban)$",
-    "^!(superunban) (.*)$"
+    "^!(suban)$",
+    "^!(suban) (.*)$",
+    "^!(suunban)$",
+    "^!(suunban) (.*)$"
   },
   run = run,
 --  privileged = true
