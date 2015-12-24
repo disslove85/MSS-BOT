@@ -2,7 +2,7 @@
 do
 
 -- make sure to set with value that not higher than stats.lua
-local NUM_MSG_MAX = 2  -- Max number of messages per TIME_CHECK seconds
+local NUM_MSG_MAX = 1  -- Max number of messages per TIME_CHECK seconds
 local TIME_CHECK = 1
 
 local function is_user_whitelisted(id)
