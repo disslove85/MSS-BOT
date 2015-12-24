@@ -1,9 +1,8 @@
-D L, [24.12.15 18:22]
-— data saved to moderation.json
+-- data saved to moderation.json
 do
 
-— make sure to set with value that not higher than stats.lua
-local NUM_MSG_MAX = 2  — Max number of messages per TIME_CHECK seconds
+-- make sure to set with value that not higher than stats.lua
+local NUM_MSG_MAX = 2  -- Max number of messages per TIME_CHECK seconds
 local TIME_CHECK = 1
 
 local function is_user_whitelisted(id)
@@ -30,18 +29,18 @@ local function kick_user(user_id, chat_id)
 end
 
 local function ban_user(user_id, chat_id)
-  — Save to redis
+  -- Save to redis
   local hash =  'banned:'..chat_id..':'..user_id
   redis:set(hash, true)
-  — Kick from chat
+  -- Kick from chat
   kick_user(user_id, chat_id)
 end
 
 local function superban_user(user_id, chat_id)
-  — Save to redis
+  -- Save to redis
   local hash =  'superbanned:'..user_id
   redis:set(hash, true)
-  — Kick from chat
+  -- Kick from chat
   kick_user(user_id, chat_id)
 end
 
@@ -114,7 +113,6 @@ local function action_by_id(extra, success, result)
   end
 end
 
-D L, [24.12.15 18:22]
 local function action_by_reply(extra, success, result)
   local msg = result
   local chat_id = msg.to.id
@@ -153,7 +151,7 @@ local function resolve_username(extra, success, result)
     local user = 'user#id'..result.id
     local username = result.username
     if msg.to.type == 'chat' then
-      — check if sudo users
+      -- check if sudo users
       local is_sudoers = false
       for v,username in pairs(_config.sudo_users) do
         if username == user_id then
@@ -192,7 +190,7 @@ local function pre_process(msg)
   local chat = 'chat#id'..chat_id
   local user = 'user#id'..user_id
 
-  — ANTI FLOOD
+  -- ANTI FLOOD
   local post_count = 'floodc:'..user_id..':'..chat_id
   redis:incr(post_count)
   if msg.from.type == 'user' then
@@ -216,17 +214,16 @@ local function pre_process(msg)
     redis:setex(post_count, TIME_CHECK, msgs+1)
   end
 
-D L, [24.12.15 18:22]
-— SERVICE MESSAGE
+  -- SERVICE MESSAGE
   if msg.action and msg.action.type then
     local action = msg.action.type
-    — Check if banned user joins chat
+    -- Check if banned user joins chat
     if action == 'chat_add_user' or action == 'chat_add_user_link' then
       local user_id
       if msg.action.link_issuer then
         user_id = msg.from.id
       else
-        user_id = msg.action.user.id
+	      user_id = msg.action.user.id
       end
       print('Checking invited user '..user_id)
       local superbanned = is_super_banned(user_id)
@@ -236,11 +233,11 @@ D L, [24.12.15 18:22]
         kick_user(user_id, chat_id)
       end
     end
-    — No further checks
+    -- No further checks
     return msg
   end
 
-  — BANNED USER TALKING
+  -- BANNED USER TALKING
   if msg.to.type == 'chat' then
     local superbanned = is_super_banned(user_id)
     local banned = is_banned(user_id, chat_id)
@@ -256,15 +253,15 @@ D L, [24.12.15 18:22]
     end
   end
 
-  — WHITELIST
+  -- WHITELIST
   local hash = 'whitelist:enabled'
   local whitelist = redis:get(hash)
   local issudo = is_sudo(msg)
 
-  — Allow all sudo users even if whitelist is allowed
+  -- Allow all sudo users even if whitelist is allowed
   if whitelist and not issudo then
     print('Whitelist enabled and not sudo')
-    — Check if user or chat is whitelisted
+    -- Check if user or chat is whitelisted
     local allowed = is_user_whitelisted(user_id)
 
     if not allowed then
@@ -310,13 +307,12 @@ local function run(msg, matches)
       end
     end
 
-    — Silent ignore
+    -- Silent ignore
     if not is_mod(msg) then
       return nil
     end
 
-D L, [24.12.15 18:22]
-if matches[1] == 'ban' then
+    if matches[1] == 'ban' then
       if msg.reply_id then
         msgr = get_message(msg.reply_id, action_by_reply, {msg=msg, match=matches[1]})
       elseif string.match(user_id, '^%d+$') then
@@ -413,8 +409,7 @@ if matches[1] == 'ban' then
       return 'User '..matches[3]..' whitelisted'
     end
 
-D L, [24.12.15 18:22]
-if matches[2] == 'chat' then
+    if matches[2] == 'chat' then
       if msg.to.type ~= 'chat' then
         return 'This is not a chat group'
       end
@@ -492,7 +487,7 @@ return {
     "^!(superunban) (.*)$"
   },
   run = run,
-—  privileged = true
+--  privileged = true
   pre_process = pre_process
 }
 
